@@ -43,10 +43,10 @@
 
       <el-button :loading="loading" type="primary" style="width:100%;margin-bottom:30px;" @click.native.prevent="handleLogin">Login</el-button>
 
-      <div class="tips">
+      <!-- <div class="tips">
         <span style="margin-right:20px;">username: admin</span>
         <span> password: any</span>
-      </div>
+      </div> -->
 
     </el-form>
   </div>
@@ -60,7 +60,7 @@ export default {
     return {
       loginForm: {
         email: 'admin@admin.com',
-        password: '123456'
+        password: 'admin123456'
       },
       loginRules: {
         email: [{ required: true, trigger: 'blur',}],

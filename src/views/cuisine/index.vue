@@ -67,7 +67,7 @@
     </el-table-column>
   </el-table>
    <el-dialog
-    title="Tips"
+    title="Cusine Info"
     :visible.sync="editVisible"
     >
      <div>

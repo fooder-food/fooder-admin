@@ -114,7 +114,7 @@
               <div v-for="item in restaurantInfoForm.businessHour" :key="item.day" style="display: flex; justify-content: space-between;margin-left: 30px">
                   <p>{{ item.day }}</p>
                 <el-time-picker
-                is-range
+                is-range=""
                 v-model="item.time"
                 range-separator="To"
                 start-placeholder="Start time"
@@ -125,7 +125,6 @@
           </el-form-item>
           <el-form-item label="Break Time">
               <el-time-picker
-                is-range
                 v-model="restaurantInfoForm.breakTime"
                 range-separator="To"
                 start-placeholder="Start time"
@@ -135,28 +134,6 @@
           <el-form-item label="Phone Number">
               <el-input v-model="restaurantInfoForm.restaurantPhone" type="tel"></el-input>
           </el-form-item>
-          <!-- <el-form-item label="Country">
-            <el-select 
-            :remote-method="remoteMethod"
-            filterable
-            :loading="countrySearchLoading"
-            v-model="restaurantInfoForm.country" 
-            placeholder="">
-              <el-option v-for="country in countryList" :key="country.id" :label="country.name" :value="country.name">
-              </el-option>
-            </el-select>
-          </el-form-item>
-          <el-form-item label="State">
-               <el-select 
-            :remote-method="remoteMethod"
-            filterable
-            :loading="countrySearchLoading"
-            v-model="restaurantInfoForm.state" 
-            placeholder="">
-              <el-option v-for="state in stateList" :key="state.id" :label="state.name" :value="state.name">
-              </el-option>
-            </el-select>
-          </el-form-item> -->
           <el-form-item label="Status">
               <el-select v-model="restaurantInfoForm.status" placeholder="">
               <el-option label="Pending" value="PENDING"></el-option>
@@ -200,31 +177,31 @@ export default {
           businessHour: [
             {
               day: 'Monday',
-              time: [],
+              time: [new Date(2016, 9, 10, 0, 0), new Date(2016, 9, 10, 23, 59)],
             },
             {
               day: 'Tuesday',
-              time: [],
+              time: [new Date(2016, 9, 10, 0, 0), new Date(2016, 9, 10, 23, 59)],
             },
             {
               day: 'Wednesday',
-              time: [],
+              time: [new Date(2016, 9, 10, 0, 0), new Date(2016, 9, 10, 23, 59)],
             },
             {
               day: 'Thursday',
-              time: [],
+              time: [new Date(2016, 9, 10, 0, 0), new Date(2016, 9, 10, 23, 59)],
             },
             {
               day: 'Friday',
-              time: [],
+              time: [new Date(2016, 9, 10, 0, 0), new Date(2016, 9, 10, 23, 59)],
             },
             {
               day: 'Saturday',
-              time: [],
+              time: [new Date(2016, 9, 10, 0, 0), new Date(2016, 9, 10, 23, 59)],
             },
             {
               day: 'Sunday',
-              time: [],
+              time: [new Date(2016, 9, 10, 0, 0), new Date(2016, 9, 10, 23, 59)],
             },
           ],
           breakTime: '',
@@ -251,11 +228,16 @@ export default {
                 this.restaurantInfoForm.pricePerson =  this.restaurantInfoForm.pricePerson;
             }
             //business hours
-            this.restaurantInfoForm.businessHour = JSON.stringify(this.restaurantInfoForm.businessHour.map(item => {
+            const businessHours = this.restaurantInfoForm.businessHour.map(item => {
                 return `${item.day}: ${this.convertTime(item.time[0])} – ${this.convertTime(item.time[1])}`
-            }));
+            });
+
+            console.log(JSON.stringify(businessHours));
+            this.restaurantInfoForm.businessHour = JSON.stringify(businessHours);
             if(this.restaurantInfoForm.breakTime) {
-                this.restaurantInfoForm.breakTime = JSON.stringify([this.convertTime(this.restaurantInfoForm.breakTime[0]), this.convertTime(this.restaurantInfoForm.breakTime[1])]);
+                breakTime = [this.convertTime(this.restaurantInfoForm.breakTime[0]), this.convertTime(this.restaurantInfoForm.breakTime[1])];
+                this.restaurantInfoForm.breakTime;
+
             }
             this.restaurantInfoForm.status = this.restaurantInfoForm.status.toLowerCase(); 
             const res = await updateRestaurantInfo(this.restaurantInfoForm);
