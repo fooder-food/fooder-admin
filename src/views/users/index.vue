@@ -1,6 +1,6 @@
 <template>
   <div class="app-container">
-    <h3>Cusine View</h3>
+    <h3>Users View</h3>
     <div class="search-container">
         <div>
             <el-input
@@ -150,7 +150,6 @@ export default {
       try {
         this.loading = true;
         const {data: userData} = await getAllUsers();
-        console.log(userData);
         this.tableData = [...userData.map(user => {
             return {
                 id: user.id,

@@ -88,7 +88,6 @@ export default {
   methods: {
     async fetch()  {
       const {data: resultData} = await getData();
-      console.log(resultData);
       this.restaurantCount = resultData.restaurant.count;
       this.userCount = resultData.user.count;
       this.reportCount = resultData.report.count;

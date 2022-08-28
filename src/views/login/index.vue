@@ -60,7 +60,7 @@ export default {
     return {
       loginForm: {
         email: 'admin@admin.com',
-        password: 'admin123456'
+        password: 'admin'
       },
       loginRules: {
         email: [{ required: true, trigger: 'blur',}],
@@ -95,14 +95,13 @@ export default {
         if (valid) {
           this.loading = true
           this.$store.dispatch('user/login', this.loginForm).then(() => {
-            print(this.loginForm);
             this.$router.push({ path: this.redirect || '/' })
             this.loading = false
           }).catch(() => {
             this.loading = false
           })
         } else {
-          console.log('error submit!!')
+           this.$message.error('Username or Password are incorrect');
           return false
         }
       })

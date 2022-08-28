@@ -154,7 +154,6 @@ export default {
         this.selectedForm.cuisineIcon = category.categoryIcon;
         this.selectedForm.cuisineName = category.categoryName;
         this.selectedForm.status = category.isActive ? 'Approved' : 'Rejected';
-        console.log(this.selectedForm.status);
 
       }catch(e) {
 
@@ -191,7 +190,6 @@ export default {
         this.selectedForm.cuisineIcon = res.data.url;
    },
   beforeAvatarUpload(file) {
-      console.log(file.type);
     const acceptFormat = ['image/jpeg','image/png'];
     const isPass = acceptFormat.includes(file.type);
     const isLt2M = file.size / 1024 / 1024 < 2;

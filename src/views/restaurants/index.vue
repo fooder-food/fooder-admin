@@ -124,12 +124,15 @@
               
           </el-form-item>
           <el-form-item label="Break Time">
-              <el-time-picker
-                v-model="restaurantInfoForm.breakTime"
-                range-separator="To"
-                start-placeholder="Start time"
-                end-placeholder="End time">
-            </el-time-picker>
+            <el-select v-model="breakTime" placeholder="Break Day">
+              <el-option
+                v-for="day in days"
+                  :key="day.value"
+                  :label="day.label"
+                  :value="day.value">
+              </el-option>
+            </el-select>
+            
           </el-form-item>
           <el-form-item label="Phone Number">
               <el-input v-model="restaurantInfoForm.restaurantPhone" type="tel"></el-input>
@@ -156,10 +159,42 @@
 <script>
 import { getRestaurants, getRestaurantInfo , getCountry, getState, updateRestaurantInfo} from '@/api/restaurants';
 import dayjs from 'dayjs';
+import en from 'element-ui/lib/locale/lang/en';
 export default {
   data() {
     return {
       actionUrl: `${process.env.VUE_APP_BASE_API}/uploads/image`,
+      days: [
+        {
+          value: 'Monday',
+          label: 'Monday'
+        },
+         {
+          value: 'Tuesday',
+          label: 'Tuesday'
+        },
+         {
+          value: 'Wednesday',
+          label: 'Wednesday'
+        },
+         {
+          value: 'Thursday',
+          label: 'Thursday'
+        },
+         {
+          value: 'Friday',
+          label: 'Friday'
+        },
+         {
+          value: 'Saturday',
+          label: 'Saturday'
+        },
+         {
+          value: 'Sunday',
+          label: 'Sunday'
+        },
+      ],
+      breakTime:'',
       tableData: [],
       loading: true,
       countrySearchLoading: false,
@@ -217,6 +252,7 @@ export default {
     }
   },
   mounted() {
+   this.breakTime = this.days[0].value;
    this.fetchCountry();
    this.fetch();
   },
@@ -232,24 +268,23 @@ export default {
                 return `${item.day}: ${this.convertTime(item.time[0])} – ${this.convertTime(item.time[1])}`
             });
 
-            console.log(JSON.stringify(businessHours));
             this.restaurantInfoForm.businessHour = JSON.stringify(businessHours);
             if(this.restaurantInfoForm.breakTime) {
-                breakTime = [this.convertTime(this.restaurantInfoForm.breakTime[0]), this.convertTime(this.restaurantInfoForm.breakTime[1])];
-                this.restaurantInfoForm.breakTime;
+               // breakTime = [this.convertTime(this.restaurantInfoForm.breakTime[0]), this.convertTime(this.restaurantInfoForm.breakTime[1])];
+                this.restaurantInfoForm.breakTime = this.breakTime;
 
             }
+            
             this.restaurantInfoForm.status = this.restaurantInfoForm.status.toLowerCase(); 
             const res = await updateRestaurantInfo(this.restaurantInfoForm);
             this.$message.success(res.data.message);
             this.fetch();
-            console.log(res);
          } catch(e) {
             this.$message.error(e.message);
          }
       },
     convertTime(time) {
-        return dayjs(time).format('hh:mm A');
+        return dayjs(time).format('HH:mm A');
     },
     filterHandler(value, row, column) {
       const property = column['property'];
@@ -324,14 +359,15 @@ export default {
     },
     async fetchSingle(id) {
          const {data: restaurantData} = await getRestaurantInfo(id);
-         console.log(restaurantData);
          const restaurantBusinessHours = JSON.parse(restaurantData.businessHour);
-         console.log(restaurantBusinessHours);
-         const newRestaurantBusinessHours = restaurantBusinessHours.map(item => {
+         let newRestaurantBusinessHours;
+         if(restaurantBusinessHours) {
+          newRestaurantBusinessHours = restaurantBusinessHours.map(item => {
              const splitArray = item.split(': ');
              const day = splitArray[0];
              const start = splitArray[1].split(' – ')[0];
              const end = splitArray[1].split(' – ')[1];
+          
              const startTime = this.timeFormatter(start);
              const endTime = this.timeFormatter(end);
              return {
@@ -339,6 +375,8 @@ export default {
                  time: [startTime, endTime],
              }
          });
+         }
+         this.breakTime = restaurantData.breakTime;
         this.restaurantInfoForm = {
             ...this.restaurantInfoForm,
           id: restaurantData.id,
@@ -369,7 +407,6 @@ export default {
         this.restaurantInfoForm.image = res.data.url;
    },
   beforeAvatarUpload(file) {
-      console.log(file.type);
     const acceptFormat = ['image/jpeg','image/png'];
     const isPass = acceptFormat.includes(file.type);
     const isLt2M = file.size / 1024 / 1024 < 2;

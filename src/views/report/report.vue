@@ -84,19 +84,34 @@
             Reject
         </el-button>
       </div>
-
-       <div v-if="scope.row.status === 'ACCEPT'" style="display: flex; padding-right: 20px">
+         <div v-if="scope.row.status === 'ACCEPT'" style="display: flex; padding-right: 20px">
          <el-button
-          size="mini"
-          @click="viewInfo(scope.row)">
-            View
-        </el-button>
-         <el-button
-          size="mini"
-          type="success"
-          @click="updateReport(scope.row, 'completed')">
-            Complete
-        </el-button>
+            size="mini"
+            @click="viewInfo(scope.row)">
+              View
+          </el-button>
+        <div v-if="scope.row.type == 'review'">
+         <!-- <el-button @click="updateReport({
+              uniqueId: reportForm.uniqueId,
+              userId: commentForm.userId,
+              restaurntUniqueId: commentForm.restaurntUniqueId,
+               isBan: true,
+            }, 'completed')" type="danger" size="mini">Ban User</el-button>
+            <el-button @click="updateReport({
+              uniqueId: reportForm.uniqueId,
+              userId: commentForm.userId,
+              restaurntUniqueId: commentForm.restaurntUniqueId,
+              isBan: false,
+            }, 'completed')" type="primary" size="mini">No Ban User</el-button> -->
+        </div>
+        <div v-else>
+          <el-button
+            size="mini"
+            type="success"
+            @click="updateReport(scope.row, 'completed')">
+              Complete
+          </el-button>
+        </div>
       </div>
        <div v-if="scope.row.status === 'COMPLETED' || scope.row.status === 'REJECT'" style="display: flex; padding-right: 20px">
          <el-button
@@ -121,10 +136,12 @@
               <el-input v-model="reportForm.uniqueId" readonly></el-input>
             </el-form-item>
              <el-form-item label="content">
-              <el-input v-model="reportForm.content" readonly></el-input>
+              <el-input v-model="reportForm.content" 
+              type="textarea"
+              autosize ></el-input>
             </el-form-item>
              <el-form-item label="type">
-              <el-input v-model="reportForm.type" 
+              <el-input v-model="reportForm.reportType" 
               type="textarea"
               autosize 
               readonly></el-input>
@@ -136,6 +153,36 @@
               <el-input v-model="reportForm.updateDate"></el-input>
             </el-form-item>
         </el-form>
+        <div v-if="reportForm.type === 'restaurant'" >
+          <p>Restuarant</p>
+        </div>
+        <div v-else>
+          <hr/>
+          <h4>Review Info</h4>
+           <el-form ref="commentForm" :model="commentForm" label-width="120px">
+            <el-form-item label="Id">
+              <el-input v-model="commentForm.uniqueId" readonly></el-input>
+            </el-form-item>
+            <el-form-item label="Unique Id">
+              <el-input v-model="commentForm.content" type="textarea"
+                autosize
+               readonly></el-input>
+            </el-form-item>
+             <el-form-item label="Restaurant Name">
+              <el-input v-model="commentForm.restaurantName" readonly></el-input>
+            </el-form-item>
+             <el-form-item label="Username">
+              <el-input v-model="commentForm.username" readonly></el-input>
+            </el-form-item>
+             <el-form-item label="Create Date">
+              <el-input v-model="commentForm.createDate" readonly></el-input>
+            </el-form-item>
+             <el-form-item label="Update Date">
+              <el-input v-model="commentForm.updateDate" readonly></el-input>
+            </el-form-item>
+          </el-form>
+         
+        </div>
 
      </div>
       <span slot="footer" class="dialog-footer">
@@ -148,7 +195,21 @@
            }, 'reject')" type="danger">Reject</el-button>
         </div>
          <div v-if="reportForm.status === 'ACCEPT'">
-           <el-button @click="updateReport({
+         <div v-if ="reportForm.type === 'review'">
+          <el-button @click="updateReport({
+              uniqueId: reportForm.uniqueId,
+              userId: commentForm.userId,
+              restaurantUniqueId: commentForm.restaurantUniqueId,
+               isBan: true,
+            }, 'completed')" type="danger">Ban User</el-button>
+            <el-button @click="updateReport({
+              uniqueId: reportForm.uniqueId,
+              userId: commentForm.userId,
+              restaurantUniqueId: commentForm.restaurantUniqueId,
+              isBan: false,
+            }, 'completed')" type="primary">No Ban User</el-button>
+         </div>
+           <el-button v-else @click="updateReport({
              uniqueId: reportForm.uniqueId,
            }, 'completed')" type="success">Complete</el-button>
         </div>
@@ -177,6 +238,16 @@ export default {
         updateDate: '',
         status: null,
      },
+     commentForm: {
+      content: '',
+      uniqueId: '',
+      updateDate: '',
+      createDate: '',
+      restaurantName: '',
+      username: '',
+      userId: '',
+      restaurantUniqueId: '',
+     }
     }
   },
   mounted() {
@@ -190,13 +261,15 @@ export default {
     async fetch() {
       try {
         this.loading = true;
-        const {data: reportsData} = await getReports();
+        const result = await getReports();
+        const reportsData = result.data;
         this.tableData = reportsData.map((report) => {
           return {
             id: report.id,
             uniqueId: report.uniqueId,
             content: report.content,
             reporter: report.reporter.username,
+            type: report.type,
             createDate: dayjs(report.createDate).format('DD/MM/YYYY h:mm:ss a'),
             updateDate: dayjs(report.updateDate).format('DD/MM/YYYY h:mm:ss a'),
             status: report.status === 'pending' ? 'PENDING': report.status === 'accept' ? 'ACCEPT': report.status === 'reject' ? 'REJECT' : 'COMPLETED',
@@ -214,12 +287,28 @@ export default {
     },
 
     async viewInfo(row) {
-       const { data: reportData } = await getSingleReport(row.uniqueId);
+       const result = await getSingleReport(row.uniqueId);
+       const reportData = result.data.report;
+       if (result.data.comment !== undefined) {
+        const comment = result.data.comment;
+        this.commentForm = {
+          content: comment.content,
+          uniqueId: comment.uniqueId,
+          updateDate: dayjs(comment.createDate).format('DD/MM/YYYY h:mm:ss a'),
+          createDate: dayjs(comment.updateDate).format('DD/MM/YYYY h:mm:ss a'),
+          restaurantName: comment.restaurant.restaurantName,
+          username: comment.user.username,
+          userId: comment.user.uniqueId,
+          restaurantUniqueId: comment.restaurant.uniqueId,
+        }
+       } else {}
+
        this.reportForm = {
           id: reportData.id,
         uniqueId: reportData.uniqueId,
         content: reportData.content,
-        type: reportData.reportType,
+        reportType: reportData.reportType,
+        type: reportData.type,
         createDate: dayjs(reportData.createDate).format('DD/MM/YYYY h:mm:ss a'),
         updateDate: dayjs(reportData.updateDate).format('DD/MM/YYYY h:mm:ss a'),
         status: reportData.status === 'pending' ? 'PENDING': reportData.status === 'accept' ? 'ACCEPT': reportData.status === 'reject' ? 'REJECT' : 'COMPLETED',
@@ -229,12 +318,17 @@ export default {
     async updateReport(row, status) {
       try {
         const result = await updateReport(row.uniqueId, {
-          status
+          status,
+          type: row.type,
+          userId: row.userId,
+          restaurantUniqueId: row.restaurantUniqueId,
+          isBan: row.isBan ? 0 : 1,
+        
         });
         if(this.viewInfoVisible) {
           this.viewInfoVisible = false;
         }
-        this.$message.success(result.data.message);
+        this.$message.success('update success');
 
       }catch(e) {
         // console.log(e);
